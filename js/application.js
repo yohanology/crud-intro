@@ -2,15 +2,13 @@ $(document).ready(function(){
 
   var GaCrimes = function(){
 
-  }
+  };
 
-  // GET ALL POSTS
-  GaCrimes.prototype.list = function(){
-
-    var constructHtml = function(response){
+  // Callback function
+  var successFunction = function(response){
       var html = '';
 
-      response.forEach(function(object){
+      response.reverse().forEach(function(object){
         html += '<tr>'
         html +=   '<td>'
         html +=     object["_id"]
@@ -25,24 +23,23 @@ $(document).ready(function(){
         html +=     object["text"]
         html +=   '</td>'
         html +=   '<td>'
-        html +=     '<button type="button" class="btn btn-warning editCrime">'
+        html +=     '<button type="button" class="btn btn-warning editCrime" data-id="'
+        html +=       object["_id"] + '">'
         html +=       'Edit'
         html +=     '</button>'
-        html +=     '<button type="button" class="btn btn-danger deleteCrime">'
+        html +=     '<button type="button" class="btn btn-danger deleteCrime" data-id="'
+        html +=       object["_id"] + '">'
         html +=       'Delete'
         html +=     '</button>'
         html +=   '</td>'
         html += '</tr>'
       });
 
-      return html;
-    };
-
-    var successFunction = function(response){
-      var html = constructHtml(response);
-      console.log('list generated');
       $('#listCrimes').html(html);
-    };
+  };
+
+  //GET ALL POSTS
+  GaCrimes.prototype.list = function(){
 
     $.ajax({
       type: "GET",
@@ -50,18 +47,13 @@ $(document).ready(function(){
       dataType: "JSON",
       success: successFunction
     });
-
   };
 
   //CREATE A POST
   GaCrimes.prototype.report = function(crimeOffender, crimeTitle, crimeDetails){
 
-    var successFunction = function(response){
-      console.log('Crime reported', response);
-      GaCrimes.prototype.list();
-    };
-
     $.ajax({
+      context: this,
       type: 'POST',
         url: 'http://ga-wdi-api.meteor.com/api/posts/',
       data: {
@@ -72,25 +64,23 @@ $(document).ready(function(){
         dateCreated: new Date()
       },
       dataType: 'json',
-      success: successFunction
+      success: function(response){
+        this.list();
+      }
     });
-
   };
 
   //DELETE A POST
   GaCrimes.prototype.delete = function(crimeId){
 
-    var successFunction = function(response){
-      console.log('Crime deleted', response);
-      GaCrimes.prototype.list();
-    };
-
     $.ajax({
+      context: this,
       type: 'DELETE',
         url: 'http://ga-wdi-api.meteor.com/api/posts/' + crimeId,
-      success: successFunction
+      success: function(response){
+        this.list();
+      }
     });
-
   };
 
   //UPDATE A POST
@@ -115,8 +105,16 @@ $(document).ready(function(){
     });
   };
 
-  //EDIT A POST
+  //SEARCH POST
+  GaCrimes.prototype.search = function(crimeOffender){
 
+    $.ajax({
+      type: "GET",
+      url: "http://ga-wdi-api.meteor.com/api/posts/search/" + crimeOffender,
+      dataType: "JSON",
+      success: successFunction
+    });
+  };
 
 //-------------------------------
 
@@ -132,10 +130,11 @@ $(document).ready(function(){
     var crimeDetails = $('#crimeDetails').val();
 
     gaCrimes.report(crimeOffender, crimeTitle, crimeDetails);
+    $('#reportCrime > div > input[type="text"]').val('');
   });
 
   $(document).on('click','.deleteCrime',function(){
-    var crimeId = $(this).parent().parent().children().first().text();
+    var crimeId = $(this).data('id');
 
     gaCrimes.delete(crimeId);
   });
@@ -179,9 +178,10 @@ $(document).ready(function(){
     };
 
     var editHtml = constructHtml();
-    crimeRow.replaceWith(editHtml)
+    
+    crimeRow.replaceWith(editHtml);
 
-    });
+  });
 
   $(document).on('click','.updateCrime',function(){
     console.log('click update');
@@ -190,11 +190,18 @@ $(document).ready(function(){
     var crimeOffender = $(($(this).parent().parent().children())[1]).children().val();
     var crimeTitle = $(($(this).parent().parent().children())[2]).children().val();
     var crimeDetails = $(($(this).parent().parent().children())[3]).children().val();
-    
-    console.log(crimeId,crimeOffender,crimeTitle,crimeDetails)
-    
+        
     gaCrimes.update(crimeId, crimeOffender, crimeTitle, crimeDetails);
 
+  });
+
+  $('#searchCrime').submit(function(){
+    event.preventDefault();
+
+    var crimeOffender = $('#searchOffender').val();
+
+    gaCrimes.search(crimeOffender);
+    $('#searchCrime > div > input[type="text"]').val('');
   });
 
 
