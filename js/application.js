@@ -25,7 +25,7 @@ $(document).ready(function(){
         html +=   '</td>'
         html +=   '<td>'
         html +=     '<button type="button" class="btn btn-warning">Edit</button>'
-        html +=     '<button type="button" class="btn btn-danger">Delete</button>'
+        html +=     '<button type="button" class="btn btn-danger deleteCrime">Delete</button>'
         html +=   '</td>'
         html += '</tr>'
       });
@@ -52,6 +52,7 @@ $(document).ready(function(){
 
     var successFunction = function(response){
       console.log('Crime reported', response);
+      GaCrimes.prototype.list();
     };
 
     $.ajax({
@@ -70,8 +71,23 @@ $(document).ready(function(){
 
   };
 
+  GaCrimes.prototype.delete = function(crimeId){
+
+    var successFunction = function(response){
+      console.log('Crime deleted', response);
+      GaCrimes.prototype.list();
+    };
+
+    $.ajax({
+      type: 'DELETE',
+        url: 'http://ga-wdi-api.meteor.com/api/posts/' + crimeId,
+      success: successFunction
+    });
+
+  };
 
 
+//--------
 
   var gaCrimes =  new GaCrimes();
 
@@ -85,9 +101,17 @@ $(document).ready(function(){
     var crimeDetails = $('#crimeDetails').val();
 
     gaCrimes.report(crimeOffender, crimeTitle, crimeDetails);
-    console.log('submitted');
-    gaCrimes.list();
+    // gaCrimes.list();
   });
+
+  $(document).on('click','.deleteCrime',function(){
+    var crimeId = $(this).parent().parent().children().first().text();
+
+    gaCrimes.delete(crimeId);
+  });
+
+
+
 
 
 
