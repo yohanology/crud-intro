@@ -1,0 +1,14 @@
+body {
+	font-family: 'Avenir';
+	background-color: #F5F5F5;
+}
+
+h2 {
+	font-size: 22px;
+	margin-top: 25px;
+	margin-bottom: 20px;
+}
+
+.btn {
+	margin-left: 10px;
+}
